@@ -1,0 +1,61 @@
+﻿@page "/"
+@using DevExpress.Blazor
+@inject HttpClient Http
+
+<PageTitle>Home</PageTitle>
+
+<DxComboBox Data="@(new string[] { "Freezing", "Bracing", "Balmy", "Chilly" })"
+            @bind-Value="_summary"
+            Context="comboBoxContext"
+            CssClass="mb-3">
+
+    <EditBoxTemplate>
+        <div>@comboBoxContext</div>
+    </EditBoxTemplate>
+
+</DxComboBox>
+
+<DxGrid Data="forecasts">
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(WeatherForecast.Date)" />
+        <DxGridDataColumn FieldName="@nameof(WeatherForecast.TemperatureC)" />
+        <DxGridDataColumn FieldName="@nameof(WeatherForecast.TemperatureF)" />
+        <DxGridDataColumn FieldName="@nameof(WeatherForecast.Summary)">
+            <CellDisplayTemplate>
+                @{
+                    var forecast = (WeatherForecast)context.DataItem;
+                }
+                <DxComboBox Data="@(new string[] { "Freezing", "Bracing", "Balmy", "Chilly" })"
+                            @bind-Value="forecast.Summary"
+                            Context="comboBoxContext">
+
+                    <EditBoxTemplate>
+                        <div>@comboBoxContext</div>
+                    </EditBoxTemplate>
+
+                </DxComboBox>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+    </Columns>
+</DxGrid>
+
+@code {
+    private WeatherForecast[]? forecasts;
+    private string? _summary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+    }
+
+    public class WeatherForecast
+    {
+        public DateOnly Date { get; set; }
+
+        public int TemperatureC { get; set; }
+
+        public string? Summary { get; set; }
+
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}
